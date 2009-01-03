@@ -21,10 +21,16 @@ module Leptonica
         :default => 14,
     }
 
+    SEL_TYPE_MAPPING =
+    {
+        :dont_care => 0,
+        :hit => 1,
+        :miss => 2,
+    }
+
     class Pix
         def self.read(pix)
             pointer = LeptonicaFFI.pixRead(pix)
-            p pointer
             Leptonica::Pix.new(pointer)
         end
 
@@ -57,15 +63,18 @@ module Leptonica
         end
 
         ###
-        # Unary functions
+        # Pixel accessors
         ###
 
-        def invert
-            Pix.new(LeptonicaFFI.pixInvert(nil, @pointer))
+        def [](row, col)
+            pixel_pointer = MemoryPointer.new :int32
+            LeptonicaFFI.pixGetPixel(@pointer, col, row, pixel_pointer)
+            pixel_pointer.get_int(0)
         end
 
-        def invert!
-            LeptonicaFFI.pixInvert(@pointer, @pointer)
+        def []=(row, col, val)
+            LeptonicaFFI.pixSetPixel(@pointer, col, row, val)
+            self
         end
 
         ###
@@ -78,6 +87,7 @@ module Leptonica
 
         def dilate!(sel)
             LeptonicaFFI.pixDilate(@pointer, @pointer, sel.pointer)
+            self
         end
 
         def erode(sel)
@@ -86,6 +96,7 @@ module Leptonica
 
         def erode!(sel)
             LeptonicaFFI.pixErode(@pointer, @pointer, sel.pointer)
+            self
         end
 
         def open(sel)
@@ -94,6 +105,7 @@ module Leptonica
 
         def open!(sel)
             LeptonicaFFI.pixOpen(@pointer, @pointer, sel.pointer)
+            self
         end
 
         def close(sel)
@@ -102,6 +114,7 @@ module Leptonica
 
         def close!(sel)
             LeptonicaFFI.pixClose(@pointer, @pointer, sel.pointer)
+            self
         end
 
         ###
@@ -122,6 +135,63 @@ module Leptonica
 
         def close_gray(width, height)
             Pix.new(LeptonicaFFI.pixCloseGray(@pointer, width, height))
+        end
+
+        ###
+        # Binary Operations
+        ###
+
+        def invert
+            Pix.new(LeptonicaFFI.pixInvert(nil, @pointer))
+        end
+
+        def invert!
+            LeptonicaFFI.pixInvert(@pointer, @pointer)
+            self
+        end
+        
+        def and(other)
+            Pix.new(LeptonicaFFI.pixAnd(nil, @pointer, other.pointer))
+        end
+        
+        def and!(other)
+            LeptonicaFFI.pixAnd(@pointer, @pointer, other.pointer)
+            self
+        end
+        
+        def or(other)
+            Pix.new(LeptonicaFFI.pixOr(nil, @pointer, other.pointer))
+        end
+        
+        def or!(other)
+            LeptonicaFFI.pixOr(@pointer, @pointer, other.pointer)
+            self
+        end
+        
+        def xor(other)
+            Pix.new(LeptonicaFFI.pixXor(nil, @pointer, other.pointer))
+        end
+        
+        def xor!(other)
+            LeptonicaFFI.pixXor(@pointer, @pointer, other.pointer)
+            self
+        end
+        
+        def subtract(other)
+            Pix.new(LeptonicaFFI.pixSubtract(nil, @pointer, other.pointer))
+        end
+        
+        def subtract!(other)
+            LeptonicaFFI.pixSubtract(@pointer, @pointer, other.pointer)
+            self
+        end
+
+        ###
+        # Threshold
+        ###
+
+        def threshold(threshold)
+            Pix.new(LeptonicaFFI.pixConvertTo1(@pointer, threshold))
         end
 
         ###
@@ -148,14 +218,26 @@ module Leptonica
             ObjectSpace.define_finalizer(self, proc {|id| Sel.release(pointer)})
         end
 
-        def self.create_brick(height, width, cy = 0, cx = 0, type = SEL_HIT)
-            Sel.new(LeptonicaFFI.selCreateBrick(height, width, cy, cx, type))
+        def self.create_empty(height, width, name = nil)
+            Sel.new(LeptonicaFFI.selCreate(height, width, name))
+        end
+
+        def self.create_brick(height, width, cy = 0, cx = 0, type = :hit)
+            Sel.new(LeptonicaFFI.selCreateBrick(height, width, cy, cx, SEL_TYPE_MAPPING[type]))
         end
 
         def self.release(pointer)
             sel_pointer = MemoryPointer.new :pointer
             sel_pointer.put_pointer(0, pointer)
             LeptonicaFFI.selDestroy(sel_pointer)
+        end
+
+        def rotate_orth(n)
+            Sel.new(LeptonicaFFI.selRotateOrth(@pointer, n))
+        end
+
+        def []=(row, col, val)
+            LeptonicaFFI.selSetElement(@pointer, row, col, SEL_TYPE_MAPPING[val])
         end
     end
 end
