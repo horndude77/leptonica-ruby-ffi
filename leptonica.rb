@@ -31,11 +31,13 @@ module Leptonica
         attr_reader :pointer
         def initialize(pointer)
             @pointer = pointer
+            ObjectSpace.define_finalizer(self, proc {|id| Pix.release(pointer)})
         end
 
-        #For now this must be done manually to avoid memory leaks
-        def release(pointer)
-            LeptonicaFFI.pixDestroy(pointer)
+        def self.release(pointer)
+            pix_pointer = MemoryPointer.new :pointer
+            pix_pointer.put_pointer(0, pointer)
+            LeptonicaFFI.pixDestroy(pix_pointer)
         end
 
         def write(filename, format = :tiff)
@@ -141,17 +143,19 @@ module Leptonica
 
     class Sel
         attr_reader :pointer
-        def initialize(sel)
-            @pointer = sel
+        def initialize(pointer)
+            @pointer = pointer
+            ObjectSpace.define_finalizer(self, proc {|id| Sel.release(pointer)})
         end
 
         def self.create_brick(height, width, cy = 0, cx = 0, type = SEL_HIT)
             Sel.new(LeptonicaFFI.selCreateBrick(height, width, cy, cx, type))
         end
 
-        #For now this must be done manually to avoid memory leaks
-        def release(pointer)
-            LeptonicaFFI.selDestroy(pointer)
+        def self.release(pointer)
+            sel_pointer = MemoryPointer.new :pointer
+            sel_pointer.put_pointer(0, pointer)
+            LeptonicaFFI.selDestroy(sel_pointer)
         end
     end
 end
