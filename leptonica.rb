@@ -209,6 +209,14 @@ module Leptonica
         def block_conv(width, height)
             Pix.new(LeptonicaFFI.pixBlockconv(@pointer, width, height))
         end
+
+        ###
+        # Clipping
+        ###
+
+        def clip(box)
+            Pix.new(LeptonicaFFI.pixClipRectangle(@pointer, box.pointer, nil))
+        end
     end
 
     class Sel
@@ -238,6 +246,24 @@ module Leptonica
 
         def []=(row, col, val)
             LeptonicaFFI.selSetElement(@pointer, row, col, SEL_TYPE_MAPPING[val])
+        end
+    end
+
+    class Box
+        attr_reader :pointer
+        def initialize(pointer)
+            @pointer = pointer
+            ObjectSpace.define_finalizer(self, proc {|id| Box.release(pointer)})
+        end
+
+        def self.create(x, y, width, height)
+            Box.new(LeptonicaFFI.boxCreate(x, y, width, height))
+        end
+
+        def self.release(pointer)
+            box_pointer = MemoryPointer.new :pointer
+            box_pointer.put_pointer(0, pointer)
+            LeptonicaFFI.boxDestroy(box_pointer)
         end
     end
 end
