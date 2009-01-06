@@ -2,6 +2,12 @@ require 'leptonica-ffi'
 
 module Leptonica
 
+    L_ROTATE_AREA_MAP = 1
+    L_ROTATE_SHEAR = 2
+
+    L_BRING_IN_WHITE = 1
+    L_BRING_IN_BLACK = 2
+
     FILE_FORMAT_MAPPING =
     {
         :unknown => 0,
@@ -195,11 +201,29 @@ module Leptonica
         end
 
         ###
-        # Deskew
+        # Skew
         ###
 
         def deskew
             Pix.new(LeptonicaFFI.pixDeskew(@pointer, 2))
+        end
+
+        def find_skew
+            skew_pointer = MemoryPointer.new :float
+            confidence_pointer = MemoryPointer.new :float
+            #p skew_pointer.methods.sort
+            LeptonicaFFI.pixFindSkew(@pointer, skew_pointer, confidence_pointer)
+            skew_pointer.get_float32(0)
+        end
+
+        ###
+        # Rotation
+        ###
+
+        def rotate(angle)
+            type = L_ROTATE_AREA_MAP
+            incolor = L_BRING_IN_WHITE
+            Pix.new(LeptonicaFFI.pixRotate(@pointer, angle, type, incolor, 0, 0))
         end
 
         ###
