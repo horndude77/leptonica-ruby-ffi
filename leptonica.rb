@@ -281,6 +281,20 @@ module Leptonica
         def remove_border(left, right, top, bottom)
             Pix.new(LeptonicaFFI.pixRemoveBorderGeneral(@pointer, left, right, top, bottom))
         end
+
+        ###
+        # Adaptive Maps
+        ###
+
+        def background_norm_gray_morph(reduction, sel_size, target_threshold)
+            map_pointer = MemoryPointer.new :pointer
+            LeptonicaFFI.pixBackgroundNormGrayArrayMorph(@pointer, nil, reduction, sel_size, target_threshold, map_pointer)
+            Pix.new(map_pointer.get_pointer(0))
+        end
+
+        def apply_inv_background_gray_map(map, reduction)
+            Pix.new(LeptonicaFFI.pixApplyInvBackgroundGrayMap(@pointer, map.pointer, reduction, reduction))
+        end
     end
 
     class Sel
