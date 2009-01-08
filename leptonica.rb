@@ -40,6 +40,13 @@ module Leptonica
             Leptonica::Pix.new(pointer)
         end
 
+        def self.create(w, h, d, xres=72, yres=72)
+            pointer = LeptonicaFFI.pixCreate(w, h, d)
+            LeptonicaFFI.pixSetXRes(pointer, xres)
+            LeptonicaFFI.pixSetYRes(pointer, yres)
+            Leptonica::Pix.new(pointer)
+        end
+
         attr_reader :pointer
         def initialize(pointer)
             @pointer = pointer
@@ -66,6 +73,22 @@ module Leptonica
 
         def depth
             LeptonicaFFI.pixGetDepth(@pointer)
+        end
+
+        def xres
+            LeptonicaFFI.pixGetXRes(@pointer)
+        end
+
+        def xres=(xres)
+            LeptonicaFFI.pixSetXRes(@pointer, xres)
+        end
+
+        def yres
+            LeptonicaFFI.pixGetYRes(@pointer)
+        end
+
+        def yres=(yres)
+            LeptonicaFFI.pixSetYRes(@pointer, yres)
         end
 
         ###
@@ -200,6 +223,12 @@ module Leptonica
             Pix.new(LeptonicaFFI.pixConvertTo1(@pointer, threshold))
         end
 
+        def estimate_global_threshold
+            threshold_pointer = MemoryPointer.new :int32
+            LeptonicaFFI.pixSplitDistributionFgBg(@pointer, 0.5, 1, threshold_pointer, nil, nil, 0)
+            threshold_pointer.get_int32(0)
+        end
+
         ###
         # Skew
         ###
@@ -211,7 +240,6 @@ module Leptonica
         def find_skew
             skew_pointer = MemoryPointer.new :float
             confidence_pointer = MemoryPointer.new :float
-            #p skew_pointer.methods.sort
             LeptonicaFFI.pixFindSkew(@pointer, skew_pointer, confidence_pointer)
             skew_pointer.get_float32(0)
         end
@@ -240,6 +268,18 @@ module Leptonica
 
         def clip(box)
             Pix.new(LeptonicaFFI.pixClipRectangle(@pointer, box.pointer, nil))
+        end
+
+        ###
+        # Borders
+        ###
+
+        def add_border(left, right, top, bottom, val=0)
+            Pix.new(LeptonicaFFI.pixAddBorderGeneral(@pointer, left, right, top, bottom, val))
+        end
+
+        def remove_border(left, right, top, bottom)
+            Pix.new(LeptonicaFFI.pixRemoveBorderGeneral(@pointer, left, right, top, bottom))
         end
     end
 
