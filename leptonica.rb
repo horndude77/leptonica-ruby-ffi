@@ -295,6 +295,18 @@ module Leptonica
         def apply_inv_background_gray_map(map, reduction)
             Pix.new(LeptonicaFFI.pixApplyInvBackgroundGrayMap(@pointer, map.pointer, reduction, reduction))
         end
+
+        ###
+        # Seed fill
+        ###
+
+        def remove_border_components(connectivity = 8)
+            Pix.new(LeptonicaFFI.pixRemoveBorderConnComps(@pointer, connectivity))
+        end
+
+        def holes_by_filling(connectivity = 8)
+            Pix.new(LeptonicaFFI.pixHolesByFilling(@pointer, connectivity))
+        end
     end
 
     class Sel
