@@ -2,7 +2,7 @@ require 'rubygems'
 Gem::manage_gems
 require 'rake/gempackagetask'
 
-spec = eval(File.read('leptonica.gemspec'))
+spec = eval(File.read('leptonica-ruby-ffi.gemspec'))
 
 Rake::GemPackageTask.new(spec) do |pkg|
     pkg.need_tar = true
