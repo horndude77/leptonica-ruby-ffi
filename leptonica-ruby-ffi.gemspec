@@ -9,5 +9,5 @@ spec = Gem::Specification.new do |s|
     s.require_path = 'lib'
     s.autorequire = 'leptonica'
     s.has_rdoc = false
-    s.add_dependency("ffi", ">= 0.2.0")
+    #s.add_dependency("ffi", ">= 0.2.0")
 end
