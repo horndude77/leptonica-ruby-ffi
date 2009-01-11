@@ -8,6 +8,10 @@ module Leptonica
     L_BRING_IN_WHITE = 1
     L_BRING_IN_BLACK = 2
 
+    PIX_SRC = 0x18
+    PIX_SET = 0x1e
+    PIX_CLR = 0x00
+
     FILE_FORMAT_MAPPING =
     {
         :unknown => 0,
@@ -146,6 +150,15 @@ module Leptonica
             self
         end
 
+        def hmt(sel)
+            Pix.new(LeptonicaFFI.pixHMT(nil, @pointer, sel.pointer))
+        end
+
+        def hmt!(sel)
+            LeptonicaFFI.pixHMT(@pointer, @pointer, sel.pointer)
+            self
+        end
+
         ###
         # Grayscale Morphology
         ###
@@ -248,9 +261,7 @@ module Leptonica
         # Rotation
         ###
 
-        def rotate(angle)
-            type = L_ROTATE_AREA_MAP
-            incolor = L_BRING_IN_WHITE
+        def rotate(angle, type = L_ROTATE_AREA_MAP, incolor = L_BRING_IN_WHITE)
             Pix.new(LeptonicaFFI.pixRotate(@pointer, angle, type, incolor, 0, 0))
         end
 
@@ -282,6 +293,16 @@ module Leptonica
             Pix.new(LeptonicaFFI.pixRemoveBorderGeneral(@pointer, left, right, top, bottom))
         end
 
+        def set_border!(left, right, top, bottom)
+            LeptonicaFFI.pixSetOrClearBorder(@pointer, left, right, top, bottom, PIX_SET)
+            self
+        end
+
+        def clear_border!(left, right, top, bottom)
+            LeptonicaFFI.pixSetOrClearBorder(@pointer, left, right, top, bottom, PIX_CLEAR)
+            self
+        end
+
         ###
         # Adaptive Maps
         ###
@@ -306,6 +327,29 @@ module Leptonica
 
         def holes_by_filling(connectivity = 8)
             Pix.new(LeptonicaFFI.pixHolesByFilling(@pointer, connectivity))
+        end
+
+        ###
+        # Connected Components
+        ###
+
+        def connected_components(connectivity = 4)
+            BoxA.new(LeptonicaFFI::pixConnComp(@pointer, nil, connectivity))
+        end
+
+        def count_connected_components(connectivity = 4)
+            count_pointer = MemoryPointer.new :int32
+            LeptonicaFFI.pixCountConnComp(@pointer, connectivity, count_pointer)
+            count_pointer.get_int32(0)
+        end
+
+        ###
+        # Rasterops
+        ###
+
+        def shift!(dx, dy, incolor=L_BRING_IN_WHITE)
+            LeptonicaFFI.pixRasteropIP(@pointer, dx, dy, incolor)
+            self
         end
     end
 
@@ -354,6 +398,50 @@ module Leptonica
             box_pointer = MemoryPointer.new :pointer
             box_pointer.put_pointer(0, pointer)
             LeptonicaFFI.boxDestroy(box_pointer)
+        end
+
+        def x
+            pointer = MemoryPointer.new :int32
+            LeptonicaFFI.boxGetGeometry(@pointer, pointer, nil, nil, nil)
+            pointer.get_int32(0)
+        end
+
+        def y
+            pointer = MemoryPointer.new :int32
+            LeptonicaFFI.boxGetGeometry(@pointer, nil, pointer, nil, nil)
+            pointer.get_int32(0)
+        end
+
+        def w
+            pointer = MemoryPointer.new :int32
+            LeptonicaFFI.boxGetGeometry(@pointer, nil, nil, pointer, nil)
+            pointer.get_int32(0)
+        end
+
+        def h
+            pointer = MemoryPointer.new :int32
+            LeptonicaFFI.boxGetGeometry(@pointer, nil, nil, nil, pointer)
+            pointer.get_int32(0)
+        end
+    end
+
+    class BoxA
+        attr_reader :pointer
+        def initialize(pointer)
+            @pointer = pointer
+            ObjectSpace.define_finalizer(self, proc {|id| BoxA.release(pointer)})
+        end
+
+        def self.release(pointer)
+            boxa_pointer = MemoryPointer.new :pointer
+            boxa_pointer.put_pointer(0, pointer)
+            LeptonicaFFI.boxaDestroy(boxa_pointer)
+        end
+
+        def extent
+            box_pointer = MemoryPointer.new :pointer
+            boxa = LeptonicaFFI::boxaGetExtent(@pointer, nil, nil, box_pointer)
+            bounding_box = Leptonica::Box.new(box_pointer.get_pointer(0))
         end
     end
 end
