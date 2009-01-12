@@ -12,6 +12,15 @@ module Leptonica
     PIX_SET = 0x1e
     PIX_CLR = 0x00
 
+    L_INSERT = 0
+    L_COPY = 1
+    L_CLONE = 2
+    L_COPY_CLONE = 3
+
+    L_SET_PIXELS = 1
+    L_CLEAR_PIXELS = 2
+    L_FLIP_PIXELS = 3
+
     FILE_FORMAT_MAPPING =
     {
         :unknown => 0,
@@ -351,6 +360,28 @@ module Leptonica
             LeptonicaFFI.pixRasteropIP(@pointer, dx, dy, incolor)
             self
         end
+
+        ###
+        # Sel
+        ###
+
+        def to_sel(cx, cy, name = nil)
+            Sel.new(LeptonicaFFI.selCreateFromPix(@pointer, cx, cy, name))
+        end
+
+        ###
+        # Box
+        ###
+
+        def render_box!(box, width = 1, mode = L_FLIP_PIXELS)
+            LeptonicaFFI.pixRenderBox(@pointer, box.pointer, width, mode)
+            self
+        end
+
+        def clear_box!(box)
+            LeptonicaFFI.pixClearInRect(@pointer, box.pointer)
+            self
+        end
     end
 
     class Sel
@@ -368,6 +399,38 @@ module Leptonica
             Sel.new(LeptonicaFFI.selCreateBrick(height, width, cy, cx, SEL_TYPE_MAPPING[type]))
         end
 
+        def self.generate_sel_with_runs(pix, nhlines, nvlines, distance, minlength, toppix, botpix, leftpix, rightpix)
+            Sel.new(
+                LeptonicaFFI.pixGenerateSelWithRuns(
+                    pix.pointer,
+                    nhlines,
+                    nvlines,
+                    distance,
+                    minlength,
+                    toppix,
+                    botpix,
+                    leftpix,
+                    rightpix,
+                    nil))
+        end
+
+        def self.generate_sel_with_runs2(pix, nhlines, nvlines, distance, minlength, toppix, botpix, leftpix, rightpix)
+            expanded_pix_pointer = MemoryPointer.new :pointer
+            sel = Sel.new(
+                LeptonicaFFI.pixGenerateSelWithRuns(
+                    pix.pointer,
+                    nhlines,
+                    nvlines,
+                    distance,
+                    minlength,
+                    toppix,
+                    botpix,
+                    leftpix,
+                    rightpix,
+                    expanded_pix_pointer))
+            [sel, Pix.new(expanded_pix_pointer.get_pointer(0))]
+        end
+
         def self.release(pointer)
             sel_pointer = MemoryPointer.new :pointer
             sel_pointer.put_pointer(0, pointer)
@@ -376,6 +439,10 @@ module Leptonica
 
         def rotate_orth(n)
             Sel.new(LeptonicaFFI.selRotateOrth(@pointer, n))
+        end
+
+        def hit_miss_sel_to_pix(pix, hit_color = 0xff880000, miss_color = 0x00ff8800, scale = 0)
+            Pix.new(LeptonicaFFI.pixDisplayHitMissSel(pix.pointer, @pointer, scale, hit_color, miss_color))
         end
 
         def []=(row, col, val)
@@ -440,8 +507,15 @@ module Leptonica
 
         def extent
             box_pointer = MemoryPointer.new :pointer
-            boxa = LeptonicaFFI::boxaGetExtent(@pointer, nil, nil, box_pointer)
+            boxa = LeptonicaFFI.boxaGetExtent(@pointer, nil, nil, box_pointer)
             bounding_box = Leptonica::Box.new(box_pointer.get_pointer(0))
+        end
+
+        def each
+            count = LeptonicaFFI.boxaGetCount(@pointer)
+            count.times do |i|
+                yield Box.new(LeptonicaFFI.boxaGetBox(@pointer, i, L_COPY))
+            end
         end
     end
 end
