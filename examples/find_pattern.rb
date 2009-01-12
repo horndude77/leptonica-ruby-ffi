@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
 #To run without installing the gem uncomment the following lines:
-SCRIPT_DIR = File.dirname($0)
-$LOAD_PATH << "#{SCRIPT_DIR}/../lib"
+#SCRIPT_DIR = File.dirname($0)
+#$LOAD_PATH << "#{SCRIPT_DIR}/../lib"
 
 require 'rubygems'
 require 'leptonica'
