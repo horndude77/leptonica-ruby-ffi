@@ -1,6 +1,14 @@
 require 'leptonica'
+require 'score_tools_ffi'
 
 module ScoreTools
+    def self.estimate_staff_parameters(pix)
+        staff_height = MemoryPointer.new :uint32
+        staff_space = MemoryPointer.new :uint32
+        ScoreToolsFFI.estimate_staff_parameters(pix.pointer, staff_height, staff_space)
+        [staff_height.get_uint(0), staff_space.get_uint(0)]
+    end
+
     def self.adaptive_map_threshold(pix)
         reduction = 4
         map = pix.background_norm_gray_morph(reduction, 11, 128)
