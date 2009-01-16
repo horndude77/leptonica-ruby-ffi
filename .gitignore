@@ -1,5 +1,8 @@
 *.tiff
 *.pbm
 *.pgm
+*.ppm
 *.swp
+*.so
+*.o
 pkg
