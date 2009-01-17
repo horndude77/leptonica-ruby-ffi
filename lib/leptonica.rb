@@ -21,6 +21,11 @@ module Leptonica
     L_CLEAR_PIXELS = 2
     L_FLIP_PIXELS = 3
 
+    COLOR_RED = 0
+    COLOR_GREEN = 1
+    COLOR_BLUE = 2
+    L_ALPHA_CHANNEL = 3
+
     FILE_FORMAT_MAPPING =
     {
         :unknown => 0,
@@ -127,6 +132,10 @@ module Leptonica
         def []=(row, col, val)
             LeptonicaFFI.pixSetPixel(pointer, col, row, val)
             self
+        end
+
+        def get_rgb_component(component)
+            Pix.new(LeptonicaFFI.pixGetRGBComponent(pointer, component))
         end
 
         ###
@@ -284,6 +293,10 @@ module Leptonica
             Pix.new(LeptonicaFFI.pixRotate(pointer, angle, type, incolor, 0, 0))
         end
 
+        def rotate_orth(n)
+            Pix.new(LeptonicaFFI.pixRotateOrth(pointer, n))
+        end
+
         ###
         # Convolution
         ###
@@ -409,6 +422,31 @@ module Leptonica
             pta = LeptonicaFFI.generatePtaWideLine(x1, y1, x2, y2, width)
             LeptonicaFFI.pixRenderPta(pointer, pta, L_SET_PIXELS)
         end
+
+        ###
+        # Morph app
+        ###
+
+        def remove_matched_pattern!(pattern, erosion, cx, cy, pixels_to_remove=0)
+            LeptonicaFFI.pixRemoveMatchedPattern(pointer, pattern.pointer, erosion.pointer, cx, cy, pixels_to_remove)
+            self
+        end
+
+        ###
+        # Scale
+        ###
+
+        def scale_2x
+            Pix.new(LeptonicaFFI.pixScaleGray2xLI(pointer))
+        end
+
+        ###
+        # Enhance
+        ###
+
+        def unsharp_mask(smooth=3, frac=0.5)
+            Pix.new(LeptonicaFFI.pixUnsharpMasking(pointer, smooth, frac))
+        end
     end
 
     class Sel < PointerClass
@@ -464,6 +502,18 @@ module Leptonica
 
         def set_origin(y, x)
             LeptonicaFFI.selSetOrigin(pointer, y, x)
+        end
+
+        def cy
+            int_pointer = MemoryPointer.new :int32
+            LeptonicaFFI.selGetParameters(pointer, nil, nil, int_pointer, nil)
+            int_pointer.get_int32(0)
+        end
+
+        def cx
+            int_pointer = MemoryPointer.new :int32
+            LeptonicaFFI.selGetParameters(pointer, nil, nil, nil, int_pointer)
+            int_pointer.get_int32(0)
         end
 
         def rotate_orth(n)
@@ -547,7 +597,7 @@ module Leptonica
         end
 
         def [](index)
-            Box.new(LeptonicaFFI.boxaGetBox(pointer, i, L_COPY))
+            Box.new(LeptonicaFFI.boxaGetBox(pointer, index, L_COPY))
         end
     end
 
