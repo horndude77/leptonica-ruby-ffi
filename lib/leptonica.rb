@@ -9,8 +9,12 @@ module Leptonica
     L_BRING_IN_BLACK = 2
 
     PIX_SRC = 0x18
+    PIX_DST = 0x14
     PIX_SET = 0x1e
     PIX_CLR = 0x00
+    def op_not(op)
+        op ^ 0x1e
+    end
 
     L_INSERT = 0
     L_COPY = 1
@@ -79,6 +83,10 @@ module Leptonica
 
         def initialize(pointer)
             super(pointer)
+        end
+
+        def dup
+            Pix.new(LeptonicaFFI.pixCopy(nil, pointer))
         end
 
         def self.release(pointer)
@@ -256,6 +264,12 @@ module Leptonica
             self
         end
 
+        def count_pixels
+            int_p = MemoryPointer.new :int32
+            LeptonicaFFI.pixCountPixels(pointer, int_p, nil)
+            int_p.get_int32(0)
+        end
+
         ###
         # Threshold
         ###
@@ -382,6 +396,10 @@ module Leptonica
         def shift!(dx, dy, incolor=L_BRING_IN_WHITE)
             LeptonicaFFI.pixRasteropIP(pointer, dx, dy, incolor)
             self
+        end
+
+        def self.rasterop(dest, dx, dy, dw, dh, op, source, sx, sy)
+            LeptonicaFFI.pixRasterop(dest.pointer, dx, dy, dw, dh, op, source.pointer, sx, sy)
         end
 
         ###
