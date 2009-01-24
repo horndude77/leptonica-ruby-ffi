@@ -79,14 +79,14 @@ module ScoreTools
         loop do
             content_mask.dilate!(sel_h)
             content_mask.dilate!(sel_v)
+            count += 1
+            #p content_mask.count_connected_components
+            break if(content_mask.count_connected_components <= 1 || count >= max_iterations)
             #BUG: Sometimes the far right column doesn't get set by a
             #horizontal dilate. Setting the border pixels as a workaround.
             content_mask.set_border!(1, 1, 1, 1)
             content_mask = content_mask.remove_border_components
             #content_mask.write("mask#{count}.tiff", :tiff_g4)
-            count += 1
-            #p content_mask.count_connected_components
-            break if(content_mask.count_connected_components <= 1 || count >= max_iterations)
         end
         image.and(content_mask)
     end
