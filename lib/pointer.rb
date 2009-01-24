@@ -1,11 +1,3 @@
-require 'leptonica-ffi'
-
-require 'pointer'
-require 'pix'
-require 'box'
-require 'sel'
-require 'num'
-
 module Leptonica
     class PointerClass
         attr_reader :pointer
@@ -18,5 +10,4 @@ module Leptonica
             proc {|id| clazz.release(pointer)}
         end
     end
-
 end
