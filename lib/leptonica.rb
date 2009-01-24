@@ -284,6 +284,10 @@ module Leptonica
             threshold_pointer.get_int32(0)
         end
 
+        def rgb_to_gray
+            Pix.new(LeptonicaFFI.pixConvertRGBToLuminance(pointer))
+        end
+
         ###
         # Skew
         ###
@@ -325,6 +329,11 @@ module Leptonica
 
         def clip(box)
             Pix.new(LeptonicaFFI.pixClipRectangle(pointer, box.pointer, nil))
+        end
+
+        def crop(x, y, w, h)
+            box = Box.create(x, y, w, h)
+            clip(box)
         end
 
         ###
@@ -445,7 +454,7 @@ module Leptonica
         # Morph app
         ###
 
-        def remove_matched_pattern!(pattern, erosion, cx, cy, pixels_to_remove=0)
+        def remove_matched_pattern!(pattern, erosion, cx, cy, pixels_to_remove=1)
             LeptonicaFFI.pixRemoveMatchedPattern(pointer, pattern.pointer, erosion.pointer, cx, cy, pixels_to_remove)
             self
         end
@@ -520,6 +529,18 @@ module Leptonica
 
         def set_origin(y, x)
             LeptonicaFFI.selSetOrigin(pointer, y, x)
+        end
+
+        def height
+            int_pointer = MemoryPointer.new :int32
+            LeptonicaFFI.selGetParameters(pointer, int_pointer, nil, nil, nil)
+            int_pointer.get_int32(0)
+        end
+
+        def width
+            int_pointer = MemoryPointer.new :int32
+            LeptonicaFFI.selGetParameters(pointer, nil, int_pointer, nil, nil)
+            int_pointer.get_int32(0)
         end
 
         def cy
