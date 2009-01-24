@@ -140,12 +140,30 @@ module Leptonica
             self
         end
 
+        def dilate_brick(w, h)
+            Pix.new(LeptonicaFFI.pixDilateBrick(nil, pointer, w, h))
+        end
+
+        def dilate_brick!(w, h)
+            LeptonicaFFI.pixDilateBrick(pointer, pointer, w, h)
+            self
+        end
+
         def erode(sel)
             Pix.new(LeptonicaFFI.pixErode(nil, pointer, sel.pointer))
         end
 
         def erode!(sel)
             LeptonicaFFI.pixErode(pointer, pointer, sel.pointer)
+            self
+        end
+
+        def erode_brick(w, h)
+            Pix.new(LeptonicaFFI.pixErodeBrick(nil, pointer, w, h))
+        end
+
+        def erode_brick!(w, h)
+            LeptonicaFFI.pixErodeBrick(pointer, pointer, w, h)
             self
         end
 
@@ -158,12 +176,30 @@ module Leptonica
             self
         end
 
+        def open_brick(w, h)
+            Pix.new(LeptonicaFFI.pixOpenBrick(nil, pointer, w, h))
+        end
+
+        def open_brick!(w, h)
+            LeptonicaFFI.pixOpenBrick(pointer, pointer, w, h)
+            self
+        end
+
         def close(sel)
             Pix.new(LeptonicaFFI.pixClose(nil, pointer, sel.pointer))
         end
 
         def close!(sel)
             LeptonicaFFI.pixClose(pointer, pointer, sel.pointer)
+            self
+        end
+
+        def close_brick(w, h)
+            Pix.new(LeptonicaFFI.pixCloseBrick(nil, pointer, w, h))
+        end
+
+        def close_brick!(w, h)
+            LeptonicaFFI.pixCloseBrick(pointer, pointer, w, h)
             self
         end
 
