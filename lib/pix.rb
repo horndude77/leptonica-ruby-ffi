@@ -30,6 +30,9 @@ module Leptonica
     COLOR_BLUE = 2
     L_ALPHA_CHANNEL = 3
 
+    L_THIN_FG = 1
+    L_THIN_BG = 2
+
     FILE_FORMAT_MAPPING =
     {
         :unknown => 0,
@@ -409,6 +412,12 @@ module Leptonica
             BoxA.new(LeptonicaFFI::pixConnComp(pointer, nil, connectivity))
         end
 
+        def connected_components2(connectivity = 4)
+            pixa_pointer = MemoryPointer.new :pointer
+            box = BoxA.new(LeptonicaFFI::pixConnComp(pointer, pixa_pointer, connectivity))
+            [box, PixA.new(pixa_pointer.get_pointer(0))]
+        end
+
         def count_connected_components(connectivity = 4)
             count_pointer = MemoryPointer.new :int32
             LeptonicaFFI.pixCountConnComp(pointer, connectivity, count_pointer)
@@ -490,6 +499,40 @@ module Leptonica
 
         def unsharp_mask(smooth=3, frac=0.5)
             Pix.new(LeptonicaFFI.pixUnsharpMasking(pointer, smooth, frac))
+        end
+
+        ###
+        # Thinning
+        ###
+
+        def thin(connectivity = 8, type = L_THIN_FG, maxiters = 0)
+            Pix.new(LeptonicaFFI.pixThin(pointer, type, connectivity, maxiters))
+        end
+    end
+
+    class PixA < PointerClass
+        def initialize(pointer)
+            super(pointer)
+        end
+
+        def self.release(pointer)
+            pixa_pointer = MemoryPointer.new :pointer
+            pixa_pointer.put_pointer(0, pointer)
+            LeptonicaFFI.pixaDestroy(pixa_pointer)
+        end
+
+        def each
+            count.times do |i|
+                yield self[i]
+            end
+        end
+
+        def count
+            LeptonicaFFI.pixaGetCount(pointer)
+        end
+
+        def [](index)
+            Box.new(LeptonicaFFI.pixaGetBox(pointer, index, L_COPY))
         end
     end
 end
