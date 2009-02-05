@@ -12,7 +12,7 @@ module Leptonica
     PIX_DST = 0x14
     PIX_SET = 0x1e
     PIX_CLR = 0x00
-    def op_not(op)
+    def self.op_not(op)
         op ^ 0x1e
     end
 
@@ -79,7 +79,7 @@ module Leptonica
             LeptonicaFFI.pixDestroy(pix_pointer)
         end
 
-        def write(filename, format = :tiff)
+        def write(filename, format = :default)
             LeptonicaFFI.pixWrite(filename, pointer, FILE_FORMAT_MAPPING[format])
         end
 
