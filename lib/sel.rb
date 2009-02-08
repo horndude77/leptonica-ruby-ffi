@@ -53,10 +53,6 @@ module Leptonica
             LeptonicaFFI.selDestroy(sel_pointer)
         end
 
-        def initialize(pointer)
-            super(pointer)
-        end
-
         def set_origin(y, x)
             LeptonicaFFI.selSetOrigin(pointer, y, x)
         end

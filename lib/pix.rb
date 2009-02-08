@@ -65,10 +65,6 @@ module Leptonica
             Leptonica::Pix.new(pointer)
         end
 
-        def initialize(pointer)
-            super(pointer)
-        end
-
         def dup
             Pix.new(LeptonicaFFI.pixCopy(nil, pointer))
         end

@@ -12,10 +12,6 @@ module Leptonica
             LeptonicaFFI.boxDestroy(box_pointer)
         end
 
-        def initialize(pointer)
-            super(pointer)
-        end
-
         def x
             int_pointer = MemoryPointer.new :int32
             LeptonicaFFI.boxGetGeometry(pointer, int_pointer, nil, nil, nil)

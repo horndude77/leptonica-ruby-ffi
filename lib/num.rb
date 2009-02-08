@@ -2,10 +2,6 @@ require 'leptonica-ffi'
 
 module Leptonica
     class NumA < PointerClass
-        def initialize(pointer)
-            super(pointer)
-        end
-
         def self.release(pointer)
             numa_pointer = MemoryPointer.new :pointer
             numa_pointer.put_pointer(0, pointer)
