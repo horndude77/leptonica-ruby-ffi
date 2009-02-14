@@ -33,6 +33,11 @@ module Leptonica
     L_THIN_FG = 1
     L_THIN_BG = 2
 
+    REMOVE_CMAP_TO_BINARY = 0
+    REMOVE_CMAP_TO_GRAYSCALE = 1
+    REMOVE_CMAP_TO_FULL_COLOR = 2
+    REMOVE_CMAP_BASED_ON_SRC = 3
+
     FILE_FORMAT_MAPPING =
     {
         :unknown => 0,
@@ -494,7 +499,11 @@ module Leptonica
         ###
 
         def unsharp_mask(smooth=3, frac=0.5)
-            Pix.new(LeptonicaFFI.pixUnsharpMasking(pointer, smooth, frac))
+            image = Pix.new(LeptonicaFFI.pixUnsharpMasking(pointer, smooth, frac))
+            #BUG: pixUnsharpMasking seems to kill the dpi of the output image.
+            image.xres = self.xres
+            image.yres = self.yres
+            image
         end
 
         ###
@@ -503,6 +512,27 @@ module Leptonica
 
         def thin(connectivity = 8, type = L_THIN_FG, maxiters = 0)
             Pix.new(LeptonicaFFI.pixThin(pointer, type, connectivity, maxiters))
+        end
+
+        ###
+        # Colormap
+        ###
+
+        def remove_colormap(type = REMOVE_CMAP_BASED_ON_SRC)
+            Pix.new(LeptonicaFFI.pixRemoveColormap(pointer, type))
+        end
+
+        def colormap?
+            !self.colormap.nil?
+        end
+
+        def colormap
+            cmap_pointer = LeptonicaFFI.pixGetColormap(pointer)
+            if(cmap_pointer.nil?)
+                nil
+            else
+                Colormap.new(cmap_pointer)
+            end
         end
     end
 

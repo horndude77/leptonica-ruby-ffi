@@ -5,4 +5,5 @@ require 'pix'
 require 'box'
 require 'sel'
 require 'num'
+require 'colormap'
 
