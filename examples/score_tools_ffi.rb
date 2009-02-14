@@ -3,8 +3,8 @@ require 'ffi'
 
 module ScoreToolsFFI
     extend FFI::Library
-    SCRIPT_DIR = File.dirname($0)
-    ffi_lib "#{SCRIPT_DIR}/libscore_tools.so"
+    SCORE_TOOLS_DIR = File.dirname(__FILE__)
+    ffi_lib "#{SCORE_TOOLS_DIR}/libscore_tools.so"
 
     functions =
     [

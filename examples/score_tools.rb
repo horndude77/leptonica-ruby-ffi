@@ -65,20 +65,14 @@ module ScoreTools
         `rm #{filename}.tiff`
     end
 
-    def self.remove_edge_noise(image, smudge_factor = 51, max_iterations = 4)
+    def self.remove_edge_noise(image, smudge_factor = 25, max_iterations = 4)
         #remove some initial noise
         sel_b = Leptonica::Sel.create_brick(3, 3, 1, 1)
-
-        #smudging bricks
-        smudge_center = smudge_factor/2
-        sel_h = Leptonica::Sel.create_brick(1, smudge_factor, 1, smudge_center)
-        sel_v = Leptonica::Sel.create_brick(smudge_factor, 1, smudge_center, 1)
 
         count = 0
         content_mask = image.open(sel_b)
         loop do
-            content_mask.dilate!(sel_h)
-            content_mask.dilate!(sel_v)
+            content_mask.dilate_brick!(smudge_factor, smudge_factor)
             count += 1
             #p content_mask.count_connected_components
             break if(content_mask.count_connected_components <= 1 || count >= max_iterations)
