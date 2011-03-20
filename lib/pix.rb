@@ -4,6 +4,7 @@ module Leptonica
 
     L_ROTATE_AREA_MAP = 1
     L_ROTATE_SHEAR = 2
+    L_ROTATE_SAMPLING = 3
 
     L_BRING_IN_WHITE = 1
     L_BRING_IN_BLACK = 2
@@ -60,7 +61,11 @@ module Leptonica
     class Pix < PointerClass
         def self.read(pix)
             pointer = LeptonicaFFI.pixRead(pix)
-            Leptonica::Pix.new(pointer)
+            if(pointer.null?)
+                nil
+            else
+                Leptonica::Pix.new(pointer)
+            end
         end
 
         def self.create(w, h, d, xres=72, yres=72)
@@ -75,7 +80,7 @@ module Leptonica
         end
 
         def self.release(pointer)
-            pix_pointer = MemoryPointer.new :pointer
+            pix_pointer = FFI::MemoryPointer.new :pointer
             pix_pointer.put_pointer(0, pointer)
             LeptonicaFFI.pixDestroy(pix_pointer)
         end
@@ -117,7 +122,7 @@ module Leptonica
         ###
 
         def [](row, col)
-            pixel_pointer = MemoryPointer.new :int32
+            pixel_pointer = FFI::MemoryPointer.new :int32
             LeptonicaFFI.pixGetPixel(pointer, col, row, pixel_pointer)
             pixel_pointer.get_int(0)
         end
@@ -286,7 +291,7 @@ module Leptonica
         end
 
         def count_pixels
-            int_p = MemoryPointer.new :int32
+            int_p = FFI::MemoryPointer.new :int32
             LeptonicaFFI.pixCountPixels(pointer, int_p, nil)
             int_p.get_int32(0)
         end
@@ -295,12 +300,16 @@ module Leptonica
         # Threshold
         ###
 
+        def to_grayscale()
+            Pix.new(LeptonicaFFI.pixConvert1To8(nil, pointer, 255, 0))
+        end
+
         def threshold(threshold)
             Pix.new(LeptonicaFFI.pixConvertTo1(pointer, threshold))
         end
 
         def estimate_global_threshold
-            threshold_pointer = MemoryPointer.new :int32
+            threshold_pointer = FFI::MemoryPointer.new :int32
             LeptonicaFFI.pixSplitDistributionFgBg(pointer, 0.5, 1, threshold_pointer, nil, nil, 0)
             threshold_pointer.get_int32(0)
         end
@@ -318,8 +327,8 @@ module Leptonica
         end
 
         def find_skew
-            skew_pointer = MemoryPointer.new :float
-            confidence_pointer = MemoryPointer.new :float
+            skew_pointer = FFI::MemoryPointer.new :float
+            confidence_pointer = FFI::MemoryPointer.new :float
             LeptonicaFFI.pixFindSkew(pointer, skew_pointer, confidence_pointer)
             skew_pointer.get_float32(0)
         end
@@ -384,7 +393,7 @@ module Leptonica
         ###
 
         def background_norm_gray_morph(reduction, sel_size, target_threshold)
-            map_pointer = MemoryPointer.new :pointer
+            map_pointer = FFI::MemoryPointer.new :pointer
             LeptonicaFFI.pixBackgroundNormGrayArrayMorph(pointer, nil, reduction, sel_size, target_threshold, map_pointer)
             Pix.new(map_pointer.get_pointer(0))
         end
@@ -414,13 +423,13 @@ module Leptonica
         end
 
         def connected_components2(connectivity = 4)
-            pixa_pointer = MemoryPointer.new :pointer
+            pixa_pointer = FFI::MemoryPointer.new :pointer
             box = BoxA.new(LeptonicaFFI::pixConnComp(pointer, pixa_pointer, connectivity))
             [box, PixA.new(pixa_pointer.get_pointer(0))]
         end
 
         def count_connected_components(connectivity = 4)
-            count_pointer = MemoryPointer.new :int32
+            count_pointer = FFI::MemoryPointer.new :int32
             LeptonicaFFI.pixCountConnComp(pointer, connectivity, count_pointer)
             count_pointer.get_int32(0)
         end
@@ -542,7 +551,7 @@ module Leptonica
         end
 
         def self.release(pointer)
-            pixa_pointer = MemoryPointer.new :pointer
+            pixa_pointer = FFI::MemoryPointer.new :pointer
             pixa_pointer.put_pointer(0, pointer)
             LeptonicaFFI.pixaDestroy(pixa_pointer)
         end

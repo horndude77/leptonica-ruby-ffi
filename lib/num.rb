@@ -3,7 +3,7 @@ require 'leptonica-ffi'
 module Leptonica
     class NumA < PointerClass
         def self.release(pointer)
-            numa_pointer = MemoryPointer.new :pointer
+            numa_pointer = FFI::MemoryPointer.new :pointer
             numa_pointer.put_pointer(0, pointer)
             LeptonicaFFI.numaDestroy(numa_pointer)
         end
@@ -27,7 +27,7 @@ module Leptonica
         end
 
         def get_float(index)
-            f_pointer = MemoryPointer.new :float
+            f_pointer = FFI::MemoryPointer.new :float
             LeptonicaFFI.numaGetFValue(pointer, index, f_pointer)
             f_pointer.get_float32(0)
         end

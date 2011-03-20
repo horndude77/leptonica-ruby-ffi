@@ -31,7 +31,7 @@ module Leptonica
         end
 
         def self.generate_sel_with_runs2(pix, nhlines, nvlines, distance, minlength, toppix, botpix, leftpix, rightpix)
-            expanded_pix_pointer = MemoryPointer.new :pointer
+            expanded_pix_pointer = FFI::MemoryPointer.new :pointer
             sel = Sel.new(
                 LeptonicaFFI.pixGenerateSelWithRuns(
                     pix.pointer,
@@ -48,7 +48,7 @@ module Leptonica
         end
 
         def self.release(pointer)
-            sel_pointer = MemoryPointer.new :pointer
+            sel_pointer = FFI::MemoryPointer.new :pointer
             sel_pointer.put_pointer(0, pointer)
             LeptonicaFFI.selDestroy(sel_pointer)
         end
@@ -58,25 +58,25 @@ module Leptonica
         end
 
         def height
-            int_pointer = MemoryPointer.new :int32
+            int_pointer = FFI::MemoryPointer.new :int32
             LeptonicaFFI.selGetParameters(pointer, int_pointer, nil, nil, nil)
             int_pointer.get_int32(0)
         end
 
         def width
-            int_pointer = MemoryPointer.new :int32
+            int_pointer = FFI::MemoryPointer.new :int32
             LeptonicaFFI.selGetParameters(pointer, nil, int_pointer, nil, nil)
             int_pointer.get_int32(0)
         end
 
         def cy
-            int_pointer = MemoryPointer.new :int32
+            int_pointer = FFI::MemoryPointer.new :int32
             LeptonicaFFI.selGetParameters(pointer, nil, nil, int_pointer, nil)
             int_pointer.get_int32(0)
         end
 
         def cx
-            int_pointer = MemoryPointer.new :int32
+            int_pointer = FFI::MemoryPointer.new :int32
             LeptonicaFFI.selGetParameters(pointer, nil, nil, nil, int_pointer)
             int_pointer.get_int32(0)
         end
